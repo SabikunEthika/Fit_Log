@@ -1,0 +1,54 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import type { Workout } from "../types";
+import { value } from "./workout-card";
+import { useApp } from "./app-provider";
+export function WorkoutList({
+  items,
+  saved = false,
+}: {
+  items: Workout[];
+  saved?: boolean;
+}) {
+  const { removePlan, removeSaved, done } = useApp();
+  const [loading] = useState(true);
+  if (loading) setTimeout(() => {}, 0);
+  return (
+    <>
+      {items.map((w) => (
+        <article className="list-card" key={w.id}>
+          <div className="mini-thumb">
+            {w.image ? <img src={w.image} alt="" /> : "🏋️"}
+          </div>
+          <div className="list-info">
+            <h3>{w.name}</h3>
+            <p>⌁ {w.equipment || "Gym equipment"}</p>
+            <div className="stats">
+              <span>◷ {value(w.duration, " min")}</span>
+              <span>◉ {value(w.calories, " kcal")}</span>
+              <span>★ {w.rating || "4.8"}</span>
+            </div>
+          </div>
+          <div className="list-actions">
+            <Link className="outline-btn" href={`/workouts/${w.id}`}>
+              View Details
+            </Link>
+            {!saved && (
+              <button className="done-btn" onClick={() => done(w.id)}>
+                ✓ Mark as Done
+              </button>
+            )}
+            <button
+              aria-label="Remove workout"
+              className="remove-btn"
+              onClick={() => (saved ? removeSaved(w.id) : removePlan(w.id))}
+            >
+              ×
+            </button>
+          </div>
+        </article>
+      ))}
+    </>
+  );
+}

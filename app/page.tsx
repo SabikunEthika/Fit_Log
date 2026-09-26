@@ -1,0 +1,87 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { Footer, Navbar } from "./components/site-chrome";
+import { WorkoutCard } from "./components/workout-card";
+import type { Workout } from "./types";
+const API = "https://api.api-store.workers.dev/api/fitlog";
+export default function Home() {
+  const [workouts, setWorkouts] = useState<Workout[]>([]),
+    [loading, setLoading] = useState(true),
+    [sort, setSort] = useState("duration");
+  useEffect(() => {
+    fetch(API)
+      .then((r) => r.json())
+      .then((data) => setWorkouts(Array.isArray(data) ? data : data.data || []))
+      .catch(() => setWorkouts([]))
+      .finally(() => setLoading(false));
+  }, []);
+  const sorted = useMemo(
+    () =>
+      [...workouts].sort(
+        (a, b) =>
+          Number(b[sort as keyof Workout]) - Number(a[sort as keyof Workout]),
+      ),
+    [workouts, sort],
+  );
+  return (
+    <>
+      <Navbar />
+      <main>
+        <section className="hero container">
+          <div>
+            <p className="eyebrow">WORKOUT LIBRARY</p>
+            <h1>
+              TRAIN WITH INTENT.
+              <br />
+              <i>LOG EVERY SET.</i>
+            </h1>
+            <p className="lead">
+              FitLog is a dark, no-nonsense gym companion: pick a lift, lock it
+              into today&apos;s plan, and watch the week&apos;s work add up.
+            </p>
+            <a href="#library" className="primary-btn">
+              Browse workouts <b>→</b>
+            </a>
+          </div>
+          <div className="hero-art">
+            <img src="/assets/banner.png" alt="Athlete performing a workout" />
+          </div>
+        </section>
+        <section id="library" className="library container">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">TRAINING INDEX</p>
+              <h2>THE LIBRARY</h2>
+              <p>Twelve lifts covering every major muscle group.</p>
+            </div>
+            <label className="sort">
+              Sort By{" "}
+              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="duration">Duration</option>
+                <option value="calories">Calories</option>
+                <option value="rating">Rating</option>
+              </select>
+            </label>
+          </div>
+          {loading ? (
+            <div className="loading">
+              <span /> Loading workouts…
+            </div>
+          ) : sorted.length ? (
+            <div className="grid">
+              {sorted.map((w) => (
+                <WorkoutCard key={w.id} w={w} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <h3>WORKOUTS UNAVAILABLE</h3>
+              <p>Please check your connection and refresh.</p>
+            </div>
+          )}
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

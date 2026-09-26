@@ -1,0 +1,97 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Footer, Navbar } from "../../components/site-chrome";
+import { useApp } from "../../components/app-provider";
+import type { Workout } from "../../types";
+import { value } from "../../components/workout-card";
+const API = "https://api.api-store.workers.dev/api/fitlog/";
+export default function Detail() {
+  const { id } = useParams<{ id: string }>();
+  const [w, setW] = useState<Workout | null>(null);
+  const { addPlan, addSaved } = useApp();
+  useEffect(() => {
+    fetch(API + id)
+      .then((r) => r.json())
+      .then((x) => setW(x.data || x))
+      .catch(() => setW(null));
+  }, [id]);
+  if (!w)
+    return (
+      <>
+        <Navbar />
+        <main className="container page-loading">Loading workout…</main>
+      </>
+    );
+  const specs = [
+    ["EQUIPMENT", w.equipment || "Gym equipment"],
+    ["DIFFICULTY", w.difficulty || "Intermediate"],
+    ["SETS", w.sets || "4"],
+    ["REPS", w.reps || "6–8"],
+    ["DURATION", value(w.duration, " min")],
+    ["CALORIES", value(w.calories, " kcal")],
+    ["RATING", w.rating || "4.8"],
+  ];
+  const cats = Array.isArray(w.category)
+    ? w.category
+    : (w.category || "Strength").split(",");
+  const steps = w.instructions || [
+    "Set the equipment to a safe starting position.",
+    "Brace your core and keep a controlled tempo.",
+    "Complete each repetition through a full range of motion.",
+    "Rest briefly, then repeat for the remaining sets.",
+  ];
+  return (
+    <>
+      <Navbar />
+      <main className="detail container">
+        <Link href="/" className="back">
+          ← Back to library
+        </Link>
+        <div className="detail-grid">
+          <div className="detail-image">
+            {w.image ? <img src={w.image} alt={w.name} /> : <span>🏋️</span>}
+          </div>
+          <div>
+            <p className="eyebrow">WORKOUT DETAIL</p>
+            <h1>{w.name}</h1>
+            <p className="description">
+              {w.description ||
+                "A focused strength movement to build control, confidence, and powerful training habits."}
+            </p>
+            <div className="tags large">
+              {cats.map((x) => (
+                <span key={x}>{x.trim()}</span>
+              ))}
+            </div>
+            <h2 className="detail-title">KEY SPECS</h2>
+            <div className="specs">
+              {specs.map(([l, v]) => (
+                <div key={l}>
+                  <span>{l}</span>
+                  <b>{v}</b>
+                </div>
+              ))}
+            </div>
+            <h2 className="detail-title">INSTRUCTIONS</h2>
+            <ol>
+              {steps.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ol>
+            <div className="ctas">
+              <button className="primary-btn" onClick={() => addPlan(w)}>
+                ＋ Add to today&apos;s plan
+              </button>
+              <button className="secondary-btn" onClick={() => addSaved(w)}>
+                ♡ Save for later
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}
