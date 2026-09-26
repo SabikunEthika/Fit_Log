@@ -1,0 +1,1 @@
+export type Workout = { id: string | number; name: string; image?: string; category?: string[] | string; equipment?: string; duration?: string | number; calories?: string | number; rating?: string | number; difficulty?: string; sets?: string | number; reps?: string; description?: string; instructions?: string[] };
